@@ -1,12 +1,12 @@
 %!PS-Adobe-3.0
-%%Title: main.py
+%%Title: main1.py
 %%For: Unknown User
 %%Creator: a2ps version 4.14
-%%CreationDate: Wed Sep  7 05:43:32 2022
+%%CreationDate: Wed Sep  7 05:44:11 2022
 %%BoundingBox: 24 24 571 818
 %%DocumentData: Clean7Bit
 %%Orientation: Landscape
-%%Pages: 1
+%%Pages: 2
 %%PageOrder: Ascend
 %%DocumentMedia: A4 595 842 0 () ()
 %%DocumentNeededResources: font Courier
@@ -764,8 +764,12 @@ x0 y0 moveto
 (""") p n
 (import) K
 ( os) p n
+(import) K
+( logging) p n
 () N
 (# from turtle import shape) c n
+(import) K
+( matplotlib) p n
 (import) K
 ( matplotlib.pyplot as plt) p n
 (import) K
@@ -776,138 +780,388 @@ x0 y0 moveto
 ( math) p n
 () N
 (from) K
+( absl ) p
+(import) K
+( app) p n
+(from) K
+( absl ) p
+(import) K
+( flags) p n
+(from) K
 ( tqdm ) p
 (import) K
 ( trange) p n
 () N
+(from) K
+( dataclasses ) p
+(import) K
+( dataclass, field, InitVar) p n
 () N
 (script_path = os.path.dirname\(os.path.realpath\(__file__\)\)) N
-(rng = np.random.default_rng\(seed=42\)) N
 () N
 () N
+(@dataclass) N
+(class) K
+( LinearModel:) p n
+(    weights: np.ndarray) N
+(    bias: float) N
+() N
+() N
+(@dataclass) N
 (class) K
 ( Data:) p n
-(    ) S
-(def) K
-( __init__\(self, ns, sig, range\):) p n
-(        self.rng = np.random.default_rng\(seed=42\)) N
-(        self.index = np.arange\(ns\)) N
-(        self.num_samples = ns) N
-(        self.sigma = sig) N
-(        self.range = range) N
-(        self.x = np.array\(self.rng.uniform\(0, 2, self.num_samples\)\)) N
-(        clean_y = tf.math.sin\(2 * math.pi * self.x\)) N
-(        self.y = np.array\(clean_y + self.rng.normal\(0, self.sigma\)\)) N
+(    model: LinearModel) N
+(    rng: InitVar[np.random.Generator]) N
+(    num_features: int) N
+(    num_samples: int) N
+(    sigma: float) N
+(    x: np.ndarray = field\(init=False\)) N
+(    y: np.ndarray = field\(init=False\)) N
 () N
 (    ) S
 (def) K
-( get_batch\(self, batch_size\):) p n
-(        choices = np.array\(rng.choice\(self.index, size=batch_size\)\)) N
+( __post_init__\(self, rng\):) p n
+(        self.index = np.arange\(self.num_samples\)) N
+(        self.x = rng.uniform\(0.1, 2, size=\(self.num_samples, self.num_features\)\)) N
+(        clean_y = tf.math.sin\(2 * math.pi * self.x\)) N
+(        self.y = rng.normal\(loc=clean_y, scale=self.sigma\)) N
+() N
+(    ) S
+(def) K
+( get_batch\(self, rng, batch_size\):) p n
+(        """) N
+(        Select random subset of examples for training batch) str n
+(        ) S
+(""") p n
+(        choices = rng.choice\(self.index, size=batch_size\)) N
+() N
 (        ) S
 (return) K
 ( self.x[choices], self.y[choices].flatten\(\)) p n
+() N
+() N
+(def) K
+( compare_linear_models\(a: LinearModel, b: LinearModel\):) p n
+(    ) S
+(for) K
+( w_a, w_b ) p
+(in) K
+( zip\(a.weights, b.weights\):) p n
+(        ) S
+(print) K
+(\(f") p
+({w_a:0.2f}, {w_b:0.2f}) str
+("\)) p n
+() N
+(    ) S
+(print) K
+(\(f") p
+({a.bias:0.2f}, {b.bias:0.2f}) str
+("\)) p n
+() N
+() N
+(main1.py) (Page 1/4) (Sep 07, 22 3:25) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(font = {) p n
+(    ) S
+(# "family": "Adobe Caslon Pro",) c n
+(    ") p
+(size) str
+(": 10,) p n
+(}) N
+() N
+(matplotlib.style.use\(") S
+(classic) str
+("\)) p n
+(matplotlib.rc\(") S
+(font) str
+(", **font\)) p n
+() N
+(FLAGS = flags.FLAGS) N
+(flags.DEFINE_integer\(") S
+(num_features) str
+(", 1, ") p
+(Number of features in record) str
+("\)) p n
+(flags.DEFINE_integer\(") S
+(num_samples) str
+(", 120, ") p
+(Number of samples in dataset) str
+("\)) p n
+(flags.DEFINE_integer\(") S
+(batch_size) str
+(", 3, ") p
+(Number of samples in batch) str
+("\)) p n
+(flags.DEFINE_integer\(") S
+(num_iters) str
+(", 100, ") p
+(Number of SGD iterations) str
+("\)) p n
+(flags.DEFINE_float\(") S
+(learning_rate) str
+(", 0.1, ") p
+(Learning rate / step size for SGD) str
+("\)) p n
+(flags.DEFINE_integer\(") S
+(random_seed) str
+(", 31415, ") p
+(Random seed) str
+("\)) p n
+(flags.DEFINE_float\(") S
+(sigma_noise) str
+(", 0.1, ") p
+(Standard deviation of noise random variable) str
+("\)) p n
+(flags.DEFINE_bool\(") S
+(debug) str
+(", False, ") p
+(Set logging level to debug) str
+("\)) p n
 () N
 () N
 (class) K
 ( Model\(tf.Module\):) p n
 (    ) S
 (def) K
-( __init__\(self, M\):) p n
-(        self.M = M) N
-(        self.w = tf.Variable\(rng.normal\(0, 1, M\)\)) N
-(        self.mu = tf.Variable\(rng.normal\(1, 0.5, M\)\)) N
-(        self.sigma = tf.Variable\(rng.normal\(0, 1, M\)\)) N
-(        self.b = tf.Variable\(np.array\([[0]]\)\)) N
+( __init__\(self, rng, num_features\):) p n
+(        """) N
+(        A plain linear regression model with a bias term) str n
+(        ) S
+(""") p n
+(        self.m = 3) N
+(        self.num_features = num_features) N
+(        self.w = tf.constant\() N
+(            tf.ones\([self.m, self.num_features], dtype=tf.dtypes.float32, name=N) N
+(one\)) N
+(        \)) N
+(        ) S
+(# self.sigma = tf.constant\(tf.fill\([self.num_features, self.m], 0.5\)\)) c n
+() p n
+(        ) S
+(# self.w = tf.Variable\(rng.normal\(shape=[self.m, self.num_features]\)\)) c n
+(        self.b = tf.Variable\(tf.zeros\(shape=[1, 1]\)\)) p n
+(        self.mu = tf.Variable\(rng.normal\(shape=[self.num_features, self.m]\)\)) N
+(        self.sigma = tf.Variable\(rng.normal\(shape=[self.num_features, self.m]\)\)) N
 () N
 (    ) S
 (def) K
 ( __call__\(self, x\):) p n
 (        ) S
 (print) K
-(\(self.mu\)) p n
+(\(x\)) p n
+(        leni = tf.shape\(x\).numpy\(\)[0]) N
+(        step_1 = tf.cast\(tf.broadcast_to\(x, [leni, self.m]\), tf.float32\)) N
 (        ) S
 (print) K
-(\(self.w\)) p n
-(        y_hat = 0) N
+(\(") p
+(STEP 1: ) str
+(" + str\(tf.shape\(step_1\)\)\)) p n
 (        ) S
-(for) K
-( j ) p
-(in) K
-( range\(self.M\):) p n
-(            theta_j = tf.math.exp\(-\(\(x - self.mu[j]\) ** 2\) / \(self.sigma[j]\) ** ) N
-(2\)) N
-(            y_hat += tf.cast\(theta_j * self.w[j], dtype=") S
-(float32) str
-("\) + tf.cast\() p n
-(                self.b, dtype=") S
-(float32) str
-(") p n
-(            \)) N
+(print) K
+(\(") p
+(STEP MU: ) str
+(" + str\(tf.shape\(self.mu\)\)\)) p n
+(        ) S
+(print) K
+(\(") p
+(MU: ) str
+(" + str\(self.mu.numpy\(\)\)\)) p n
+(        step_2 = tf.cast\(tf.broadcast_to\(self.mu, [leni, self.m]\), tf.float32\)) N
+(        ) S
+(print) K
+(\(") p
+(STEP 2: ) str
+(" + str\(tf.shape\(step_2\)\)\)) p n
+(        ) S
+(print) K
+(\(") p
+(STEP 2: ) str
+(" + str\(step_2.numpy\(\)\)\)) p n
 () N
+(        step_3 = step_1 - step_2) N
+(        ) S
+(print) K
+(\(") p
+(STEP 3: ) str
+(" + str\(step_3.numpy\(\)\)\)) p n
+() N
+(        step_4 = -\(\(step_3\) ** 2\) / tf.broadcast_to\(self.sigma, [leni, self.m]\)) N
+(        ) S
+(print) K
+(\(") p
+(sigma) str
+(" + str\(self.sigma.numpy\(\)\)\)) p n
+(        ) S
+(print) K
+(\(") p
+(STEP 4: ) str
+(" + str\(step_4.numpy\(\)\)\)) p n
+() N
+(        ) S
+(print) K
+(\(") p
+(WEIGHTS: ) str
+(" + str\(self.w.numpy\(\)\)\)) p n
+(        step_5 = step_4 @ self.w + self.b) N
+(        ) S
+(print) K
+(\(") p
+(STEP 5: ) str
+(" + str\(step_5.numpy\(\)\)\)) p n
+(        ) S
+(# print\(step_5\)) c n
+(        ) p
+(# print\(tf.shape\(tf.squeeze\(x @ self.w + self.b\)\)\)) c n
+(        ) p
+(return) K
+( tf.squeeze\(step_5\)) p n
+() N
+(main1.py) (Page 2/4) (Sep 07, 22 3:25) title
+border
+grestore
+(Printed by Unknown User) rhead
+(./hw1/main1.py) (1/2) (Wednesday September 07, 2022) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(    @property) p n
+(    ) S
+(def) K
+( model\(self\):) p n
 (        ) S
 (return) K
-( y_hat) p n
+( LinearModel\(self.w.numpy\(\).reshape\([self.m]\), self.b.numpy\(\).sque) p n
+(eze\(\)\)) N
 () N
 () N
-(data = Data\(50, 0.1, \(0, 2\)\)) N
-(model = Model\(5\)) N
+(def) K
+( main\(a\):) p n
+(    logging.basicConfig\(\)) N
 () N
-(optimizer = tf.optimizers.SGD\(learning_rate=0.1\)) N
-(main.py) (Page 1/2) (Sep 07, 22 5:43) title
+(    ) S
+(if) K
+( FLAGS.debug:) p n
+(        logging.getLogger\(\).setLevel\(logging.DEBUG\)) N
+() N
+(    ) S
+(# Safe np and tf PRNG) c n
+(    seed_sequence = np.random.SeedSequence\(FLAGS.random_seed\)) p n
+(    np_seed, tf_seed = seed_sequence.spawn\(2\)) N
+(    np_rng = np.random.default_rng\(np_seed\)) N
+(    tf_rng = tf.random.Generator.from_seed\(tf_seed.entropy\)) N
+() N
+(    data_generating_model = LinearModel\() N
+(        weights=np_rng.integers\(low=0, high=5, size=\(FLAGS.num_features\)\), bias=) N
+(2) N
+(    \)) N
+(    logging.debug\(data_generating_model\)) N
+() N
+(    data = Data\() N
+(        data_generating_model,) N
+(        np_rng,) N
+(        FLAGS.num_features,) N
+(        FLAGS.num_samples,) N
+(        FLAGS.sigma_noise,) N
+(    \)) N
+() N
+(    model = Model\(tf_rng, FLAGS.num_features\)) N
+(    logging.debug\(model.model\)) N
+() N
+(    optimizer = tf.optimizers.SGD\(learning_rate=FLAGS.learning_rate\)) N
+() N
+(    bar = trange\(FLAGS.num_iters\)) N
+(    ) S
+(for) K
+( i ) p
+(in) K
+( bar:) p n
+() N
+(        with tf.GradientTape\(\) as tape:) N
+(            x, y = data.get_batch\(np_rng, FLAGS.batch_size\)) N
+(            y_hat = model\(x\)) N
+(            loss = 0.5 * tf.reduce_mean\(\(y_hat - y\) ** 2\)) N
+(            ) S
+(print) K
+(\(loss\)) p n
+() N
+(        grads = tape.gradient\(loss, model.trainable_variables\)) N
+(        optimizer.apply_gradients\(zip\(grads, model.trainable_variables\)\)) N
+() N
+(        bar.set_description\(f") S
+(Loss @ {i} => {loss.numpy\(\):0.6f}) str
+("\)) p n
+(        bar.refresh\(\)) N
+() N
+(    logging.debug\(model.model\)) N
+() N
+(    ) S
+(if) K
+( FLAGS.num_features > 1:) p n
+(        ) S
+(# Only continue to plotting if x is a scalar) c n
+(        exit\(0\)) p n
+() N
+(    fig, ax = plt.subplots\(1, 1, figsize=\(11, 8\), dpi=200\)) N
+() N
+(    ax.set_title\(") S
+(Linear fit) str
+("\)) p n
+(    ax.set_xlabel\(") S
+(x) str
+("\)) p n
+(main1.py) (Page 3/4) (Sep 07, 22 3:25) title
 border
 /v 1 store
 /x0 x v get 3.362408 add sx cw mul add store
 /y0 y v get bfs th add sub store
 x0 y0 moveto
-(bar = trange\(500\)) p n
-(for) K
-( i ) p
-(in) K
-( bar:) p n
-(    with tf.GradientTape\(\) as tape:) N
-(        x, y = data.get_batch\(16\)) N
-(        y_hat = model\(x\)) N
-(        loss = 0.5 * tf.reduce_mean\(\(y_hat - y\) ** 2\)) N
-() N
-(    grads = tape.gradient\(loss, model.trainable_variables\)) N
-(    optimizer.apply_gradients\(zip\(grads, model.trainable_variables\)\)) N
-() N
-(    bar.set_description\(f") S
-(Loss @ {i} => {loss.numpy\(\):0.6f}) str
-("\)) p n
-(    bar.refresh\(\)) N
-() N
-(fig, ax = plt.subplots\(1, 1, figsize=\(11, 8\), dpi=200\)) N
-() N
-(ax.set_title\(") S
-(Linear fit) str
-("\)) p n
-(ax.set_xlabel\(") S
-(x) str
-("\)) p n
-(ax.set_ylim\(np.amin\(data.y\) * 1.5, np.amax\(data.y\) * 1.5\)) N
-(h = ax.set_ylabel\(") S
+(    ax.set_ylim\(np.amin\(data.y\) * 10.5, np.amax\(data.y\) * 10.5\)) p n
+(    h = ax.set_ylabel\(") S
 (y) str
 (", labelpad=10\)) p n
-(h.set_rotation\(0\)) N
+(    h.set_rotation\(0\)) N
 () N
-(xs = np.linspace\(0, 2, 1000\)) N
-(xs = xs[:, np.newaxis]) N
-(ax.plot\(xs, np.squeeze\(model\(xs\)\), ") S
+(    xs = np.linspace\(0, 2, 10\)) N
+(    xs = xs[:, np.newaxis]) N
+(    ax.plot\(xs, np.squeeze\(model\(xs\)\), ") S
 (-) str
 (", np.squeeze\(data.x\), data.y, ") p
 (o) str
 ("\)) p n
 () N
-(plt.tight_layout\(\)) N
-(plt.savefig\(f") S
+(    plt.tight_layout\(\)) N
+(    plt.savefig\(f") S
 ({script_path}/fit.pdf) str
 ("\)) p n
-(main.py) (Page 2/2) (Sep 07, 22 5:43) title
+() N
+() N
+(if) K
+( __name__ == ") p
+(__main__) str
+(":) p n
+(    app.run\(main\)) N
+(main1.py) (Page 4/4) (Sep 07, 22 3:25) title
 border
 grestore
 (Printed by Unknown User) rhead
-(./hw1/main.py) (1/1) (Wednesday September 07, 2022) footer
+(./hw1/main1.py) (2/2) (Wednesday September 07, 2022) footer
 end % of iso1dict
 pagesave restore
 showpage
