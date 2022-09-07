@@ -2,7 +2,7 @@
 %%Title: main.py
 %%For: Unknown User
 %%Creator: a2ps version 4.14
-%%CreationDate: Wed Sep  7 05:43:32 2022
+%%CreationDate: Wed Sep  7 14:47:57 2022
 %%BoundingBox: 24 24 571 818
 %%DocumentData: Clean7Bit
 %%Orientation: Landscape
@@ -853,7 +853,7 @@ x0 y0 moveto
 (model = Model\(5\)) N
 () N
 (optimizer = tf.optimizers.SGD\(learning_rate=0.1\)) N
-(main.py) (Page 1/2) (Sep 07, 22 5:43) title
+(main.py) (Page 1/2) (Sep 07, 22 14:47) title
 border
 /v 1 store
 /x0 x v get 3.362408 add sx cw mul add store
@@ -877,33 +877,59 @@ x0 y0 moveto
 ("\)) p n
 (    bar.refresh\(\)) N
 () N
-(fig, ax = plt.subplots\(1, 1, figsize=\(11, 8\), dpi=200\)) N
+(fig, ax = plt.subplots\(1, 2, figsize=\(11, 8\), dpi=200\)) N
 () N
-(ax.set_title\(") S
-(Linear fit) str
+(ax[0].set_title\(") S
+(Linear Combination of Gaussians) str
 ("\)) p n
-(ax.set_xlabel\(") S
+(ax[0].set_xlabel\(") S
 (x) str
 ("\)) p n
-(ax.set_ylim\(np.amin\(data.y\) * 1.5, np.amax\(data.y\) * 1.5\)) N
-(h = ax.set_ylabel\(") S
+(ax[0].set_ylim\(np.amin\(data.y\) * 1.5, np.amax\(data.y\) * 1.5\)) N
+(h = ax[0].set_ylabel\(") S
 (y) str
 (", labelpad=10\)) p n
 (h.set_rotation\(0\)) N
 () N
-(xs = np.linspace\(0, 2, 1000\)) N
+(xs = np.linspace\(0, 2, 100\)) N
 (xs = xs[:, np.newaxis]) N
-(ax.plot\(xs, np.squeeze\(model\(xs\)\), ") S
-(-) str
-(", np.squeeze\(data.x\), data.y, ") p
-(o) str
+(ax[0].plot\(xs, np.squeeze\(model\(xs\)\), dashes=[6, 2], label=") S
+(model) str
 ("\)) p n
+(ax[0].plot\(np.squeeze\(data.x\), data.y, ") S
+(o) str
+(", label=") p
+(training data) str
+("\)) p n
+(ax[0].plot\(xs, np.squeeze\(\(tf.math.sin\(2 * math.pi * xs\)\)\), label=") S
+(training data) str
+("\)) p n
+(ax[0].plot\(\)) N
+() N
+(ax[1].set_title\(") S
+(Linear Combination of Gaussians) str
+("\)) p n
+(ax[1].set_xlabel\(") S
+(x) str
+("\)) p n
+(ax[1].set_ylim\(np.amin\(data.y\) * 1.5, np.amax\(data.y\) * 1.5\)) N
+() N
+(for) K
+( mu_i ) p
+(in) K
+( range\(tf.shape\(model.mu\)[0]\):) p n
+(    theta_j = tf.math.exp\(-\(\(xs - model.mu[mu_i]\) ** 2\) / \(model.sigma[mu_i]\) **) N
+( 2\)) N
+(    ax[1].plot\(xs, theta_j\)) N
+(ax[0].plot\(\)) N
+(ax[1].plot\(\)) N
+() N
 () N
 (plt.tight_layout\(\)) N
 (plt.savefig\(f") S
 ({script_path}/fit.pdf) str
 ("\)) p n
-(main.py) (Page 2/2) (Sep 07, 22 5:43) title
+(main.py) (Page 2/2) (Sep 07, 22 14:47) title
 border
 grestore
 (Printed by Unknown User) rhead

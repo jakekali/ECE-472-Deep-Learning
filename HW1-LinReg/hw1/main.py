@@ -72,17 +72,31 @@ for i in bar:
     bar.set_description(f"Loss @ {i} => {loss.numpy():0.6f}")
     bar.refresh()
 
-fig, ax = plt.subplots(1, 1, figsize=(11, 8), dpi=200)
+fig, ax = plt.subplots(1, 2, figsize=(11, 4), dpi=200)
 
-ax.set_title("Linear fit")
-ax.set_xlabel("x")
-ax.set_ylim(np.amin(data.y) * 1.5, np.amax(data.y) * 1.5)
-h = ax.set_ylabel("y", labelpad=10)
+ax[0].set_title("Linear Combination of Gaussians")
+ax[0].set_xlabel("x")
+ax[0].set_ylim(np.amin(data.y) * 1.5, np.amax(data.y) * 1.5)
+h = ax[0].set_ylabel("y", labelpad=10)
 h.set_rotation(0)
 
-xs = np.linspace(0, 2, 1000)
+xs = np.linspace(0, 2, 100)
 xs = xs[:, np.newaxis]
-ax.plot(xs, np.squeeze(model(xs)), "-", np.squeeze(data.x), data.y, "o")
+ax[0].plot(xs, np.squeeze(model(xs)), dashes=[6, 2], label="model")
+ax[0].plot(np.squeeze(data.x), data.y, "o", label="training data")
+ax[0].plot(xs, np.squeeze((tf.math.sin(2 * math.pi * xs))), label="training data")
+ax[0].plot()
+
+ax[1].set_title("Linear Combination of Gaussians")
+ax[1].set_xlabel("x")
+ax[1].set_ylim(np.amin(data.y) * 1.5, np.amax(data.y) * 1.5)
+
+for mu_i in range(tf.shape(model.mu)[0]):
+    theta_j = tf.math.exp(-((xs - model.mu[mu_i]) ** 2) / (model.sigma[mu_i]) ** 2)
+    ax[1].plot(xs, theta_j)
+ax[0].plot()
+ax[1].plot()
+
 
 plt.tight_layout()
 plt.savefig(f"{script_path}/fit.pdf")
