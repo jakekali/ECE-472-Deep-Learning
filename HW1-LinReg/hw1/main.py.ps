@@ -2,7 +2,7 @@
 %%Title: main.py
 %%For: Unknown User
 %%Creator: a2ps version 4.14
-%%CreationDate: Wed Sep  7 14:49:48 2022
+%%CreationDate: Wed Sep  7 21:21:12 2022
 %%BoundingBox: 24 24 571 818
 %%DocumentData: Clean7Bit
 %%Orientation: Landscape
@@ -817,43 +817,35 @@ x0 y0 moveto
 (        self.w = tf.Variable\(rng.normal\(0, 1, M\)\)) N
 (        self.mu = tf.Variable\(rng.normal\(1, 0.5, M\)\)) N
 (        self.sigma = tf.Variable\(rng.normal\(0, 1, M\)\)) N
-(        self.b = tf.Variable\(np.array\([[0]]\)\)) N
+(        self.b = tf.Variable\(np.array\([[0.0]]\)\)) N
 () N
 (    ) S
 (def) K
 ( __call__\(self, x\):) p n
-(        ) S
-(print) K
-(\(self.mu\)) p n
-(        ) S
-(print) K
-(\(self.w\)) p n
-(        y_hat = 0) N
-(        ) S
-(for) K
-( j ) p
-(in) K
-( range\(self.M\):) p n
-(            theta_j = tf.math.exp\(-\(\(x - self.mu[j]\) ** 2\) / \(self.sigma[j]\) ** ) N
-(2\)) N
-(            y_hat += tf.cast\(theta_j * self.w[j], dtype=") S
-(float32) str
-("\) + tf.cast\() p n
-(                self.b, dtype=") S
-(float32) str
-(") p n
-(            \)) N
+(        num = tf.shape\(x\)[0]) N
+(        x = tf.squeeze\(x\)) N
+(        x = tf.transpose\(tf.broadcast_to\(x, [self.M, num]\)\)) N
+(        mu = tf.broadcast_to\(self.mu, [num, self.M]\)) N
+(        sigma = tf.broadcast_to\(self.sigma, [num, self.M]\)) N
+(        theta = tf.math.exp\(-\(\(x - mu\) ** 2\) / \(sigma\) ** 2\)) N
+() N
+(        y = tf.broadcast_to\(self.w, [1, self.M]\) @ tf.transpose\(theta\)) N
 () N
 (        ) S
 (return) K
-( y_hat) p n
+( tf.cast\(y, dtype=") p
+(float32) str
+("\) + tf.cast\(self.b, dtype=") p
+(float32) str
+("\)) p n
 () N
 () N
 (data = Data\(50, 0.1, \(0, 2\)\)) N
 (model = Model\(5\)) N
 () N
+() N
 (optimizer = tf.optimizers.SGD\(learning_rate=0.1\)) N
-(main.py) (Page 1/2) (Sep 07, 22 14:49) title
+(main.py) (Page 1/2) (Sep 07, 22 21:18) title
 border
 /v 1 store
 /x0 x v get 3.362408 add sx cw mul add store
@@ -893,7 +885,13 @@ x0 y0 moveto
 () N
 (xs = np.linspace\(0, 2, 100\)) N
 (xs = xs[:, np.newaxis]) N
-(ax[0].plot\(xs, np.squeeze\(model\(xs\)\), dashes=[6, 2], label=") S
+(print) K
+(\(tf.shape\(np.squeeze\(xs\)\)\)) p n
+(print) K
+(\(tf.shape\(model\(np.squeeze\(xs\)\)\)\)) p n
+(ax[0].plot\(xs, np.squeeze\(model\(xs\)\), ") S
+(--) str
+(", label=") p
 (model) str
 ("\)) p n
 (ax[0].plot\(np.squeeze\(data.x\), data.y, ") S
@@ -929,7 +927,7 @@ x0 y0 moveto
 (plt.savefig\(f") S
 ({script_path}/fit.pdf) str
 ("\)) p n
-(main.py) (Page 2/2) (Sep 07, 22 14:49) title
+(main.py) (Page 2/2) (Sep 07, 22 21:18) title
 border
 grestore
 (Printed by Unknown User) rhead

@@ -40,23 +40,24 @@ class Model(tf.Module):
         self.w = tf.Variable(rng.normal(0, 1, M))
         self.mu = tf.Variable(rng.normal(1, 0.5, M))
         self.sigma = tf.Variable(rng.normal(0, 1, M))
-        self.b = tf.Variable(np.array([[0]]))
+        self.b = tf.Variable(np.array([[0.0]]))
 
     def __call__(self, x):
-        print(self.mu)
-        print(self.w)
-        y_hat = 0
-        for j in range(self.M):
-            theta_j = tf.math.exp(-((x - self.mu[j]) ** 2) / (self.sigma[j]) ** 2)
-            y_hat += tf.cast(theta_j * self.w[j], dtype="float32") + tf.cast(
-                self.b, dtype="float32"
-            )
+        num = tf.shape(x)[0]
+        x = tf.squeeze(x)
+        x = tf.transpose(tf.broadcast_to(x, [self.M, num]))
+        mu = tf.broadcast_to(self.mu, [num, self.M])
+        sigma = tf.broadcast_to(self.sigma, [num, self.M])
+        theta = tf.math.exp(-((x - mu) ** 2) / (sigma) ** 2)
 
-        return y_hat
+        y = tf.broadcast_to(self.w, [1, self.M]) @ tf.transpose(theta)
+
+        return tf.cast(y, dtype="float32") + tf.cast(self.b, dtype="float32")
 
 
 data = Data(50, 0.1, (0, 2))
 model = Model(5)
+
 
 optimizer = tf.optimizers.SGD(learning_rate=0.1)
 bar = trange(500)
@@ -82,7 +83,9 @@ h.set_rotation(0)
 
 xs = np.linspace(0, 2, 100)
 xs = xs[:, np.newaxis]
-ax[0].plot(xs, np.squeeze(model(xs)), dashes=[6, 2], label="model")
+print(tf.shape(np.squeeze(xs)))
+print(tf.shape(model(np.squeeze(xs))))
+ax[0].plot(xs, np.squeeze(model(xs)), "--", label="model")
 ax[0].plot(np.squeeze(data.x), data.y, "o", label="training data")
 ax[0].plot(xs, np.squeeze((tf.math.sin(2 * math.pi * xs))), label="training data")
 ax[0].plot()

@@ -28,5 +28,5 @@ After running the second command, open `fit.pdf`
 ### Generate single PDF for submission
 
 ```
-$ ./tf.sh  gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=linear-example.pdf linear-example/main.py.pdf linear-example/fit.pdf
+$ ./tf.sh  gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=hw1.pdf hw1/main.py.pdf hw1/fit.pdf
 ```
