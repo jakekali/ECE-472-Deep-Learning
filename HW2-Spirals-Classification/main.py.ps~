@@ -2,7 +2,7 @@
 %%Title: main.py
 %%For: Unknown User
 %%Creator: a2ps version 4.14
-%%CreationDate: Tue Sep 13 03:10:16 2022
+%%CreationDate: Tue Sep 13 21:52:51 2022
 %%BoundingBox: 24 24 571 818
 %%DocumentData: Clean7Bit
 %%Orientation: Landscape
@@ -778,7 +778,7 @@ x0 y0 moveto
 () N
 () N
 (script_path = os.path.dirname\(os.path.realpath\(__file__\)\)) N
-(rng = np.random.default_rng\(seed=55\)) N
+(rng = np.random.default_rng\(seed=69\)) N
 () N
 () N
 (class) K
@@ -839,108 +839,116 @@ x0 y0 moveto
 ( DenseLayer\(tf.Module\):) p n
 (    ) S
 (def) K
-( __init__\(self, n_in, n_out\):) p n
-(        self.w = tf.Variable\(rng.uniform\(-1, 1, \(n_in, n_out\)\), dtype=tf.float32) N
-(\)) N
-(        self.b = tf.Variable\(rng.normal\(-1, 1, \(n_out\)\), dtype=tf.float32\)) N
-() N
-(main.py) (Page 1/3) (Sep 13, 22 3:10) title
+( __init__\(self, n_out, activation=tf.nn.leaky_relu, name=None\):) p n
+(        super\(\).__init__\(name=name\)) N
+(        self.n_out = n_out) N
+(        self.activation = activation) N
+(        self.__is_built = False) N
+(main.py) (Page 1/3) (Sep 13, 22 21:52) title
 border
 /v 1 store
 /x0 x v get 3.362408 add sx cw mul add store
 /y0 y v get bfs th add sub store
 x0 y0 moveto
-(    ) p
+() p n
+(    ) S
+(def) K
+( build\(self, n_in, index=0\):) p n
+(        self.w = tf.Variable\() N
+(            tf.random.normal\([n_in, self.n_out]\) * 0.01, name=") S
+(w) str
+(" + str\(index\)) p n
+(        \)) N
+(        self.b = tf.Variable\(tf.zeros\([1, self.n_out]\), name=") S
+(b) str
+(" + str\(index\)\)) p n
+(        self.__is_built = True) N
+() N
+(    ) S
 (def) K
 ( __call__\(self, x\):) p n
 (        ) S
+(if) K
+( ) p
+(not) K
+( self.__is_built:) p n
+(            ) S
+(raise) K
+( ValueError\(") p
+(Dense layer not built) str
+("\)) p n
+(        ) S
 (return) K
-( tf.nn.sigmoid\(\(x @ self.w\)\) + self.b) p n
+( self.activation\(\(x @ self.w\) + self.b\)) p n
 () N
+() N
+(# def loss\(y_true, y_pred\):) c n
+(#     return tf.reduce_mean\() N
+(#         y_true * tf.math.log\(y_pred\) + \(1 - y_true\) * tf.math.log\(1 - y_pred\)) N
+(#     \)) N
+() p n
 () N
 (class) K
 ( Model\(tf.Module\):) p n
 (    ) S
 (def) K
-( __init__\(self\):) p n
-(        self.D1 = DenseLayer\(2, 32\)) N
-(        self.D2 = DenseLayer\(32, 32\)) N
-(        self.D3 = DenseLayer\(32, 32\)) N
-(        self.D4 = DenseLayer\(32, 32\)) N
-(        self.D5 = DenseLayer\(32, 32\)) N
-(        self.D6 = DenseLayer\(32, 1\)) N
+( __init__\(self, input, layers, name=None\) -> None:) p n
+(        super\(\).__init__\(name=name\)) N
+(        self.layers = []) N
+(        with self.name_scope:) N
+(            ) S
+(for) K
+( \(i, node\) ) p
+(in) K
+( enumerate\(layers\):) p n
+(                node.build\(input, i\)) N
+(                self.layers.append\(node\)) N
+(                input = node.n_out) N
 () N
+(    @tf.Module.with_name_scope) N
 (    ) S
 (def) K
 ( __call__\(self, x\):) p n
-(        l1 = self.D1\(x\)) N
-(        l2 = self.D2\(l1\)) N
-(        l3 = self.D3\(l2\)) N
-(        l4 = self.D4\(l3\)) N
-(        l5 = self.D5\(l4\)) N
-(        l6 = self.D6\(l5\)) N
+(        value = x) N
+(        ) S
+(for) K
+( node ) p
+(in) K
+( self.layers:) p n
+(            value = node\(value\)) N
 (        ) S
 (return) K
-( l6) p n
+( value) p n
 () N
 () N
-(data = Data\(500, 0.25, \(0.75, 15\)\)) N
+(# model.build\(input_shape=\(2, 16\)\)) c n
+() p n
+(data = Data\(500, 0.01, \(0.75, 5\)\)) N
 (data.plot\(\)) N
 () N
-(model = Model\(\)) N
-() N
-(optimizer = tf.optimizers.SGD\(learning_rate=0.03\)) N
-(bar = trange\(10\)) N
-(for) K
-( i ) p
-(in) K
-( bar:) p n
-(    with tf.GradientTape\(\) as tape:) N
-(        x, y = data.get_batch\(32\)) N
-(        y_hat = model\(x\)) N
-(        ) S
 (print) K
 (\(") p
-(Hat) str
+(model) str
 ("\)) p n
-(        ) S
-(print) K
-(\(y_hat\)) p n
-(        ) S
-(print) K
-(\(") p
-(Y) str
-("\)) p n
-(        ) S
-(print) K
-(\(y\)) p n
-(        loss = tf.reduce_mean\(y * tf.math.log\(y_hat\) + \(1 - y\) * tf.math.log\(1 -) N
-( y_hat\)\)) N
-() N
-(    grads = tape.gradient\(loss, model.trainable_variables\)) N
-(    optimizer.apply_gradients\(zip\(grads, model.trainable_variables\)\)) N
-() N
-(    bar.set_description\(f") S
-(Loss @ {i} => {loss.numpy\(\):0.6f}) str
-("\)) p n
-(    bar.refresh\(\)) N
-() N
-(fig, ax = plt.subplots\(1, 2, figsize=\(11, 4\), dpi=200\)) N
-() N
-(# ax[0].set_title\("Linear Combination of Gaussians"\)) c n
-(# ax[0].set_xlabel\("x"\)) N
-(# ax[0].set_ylim\(np.amin\(data.y\) * 1.5, np.amax\(data.y\) * 1.5\)) N
-(# h = ax[0].set_ylabel\("y", labelpad=10\)) N
-(# h.set_rotation\(0\)) N
+(model = Model\() N
+(    2,) N
+(    [) N
+(        DenseLayer\(96\),) N
+(        DenseLayer\(96\),) N
+(        DenseLayer\(96\),) N
+(        DenseLayer\(1, activation=tf.nn.sigmoid\),) N
+(    ],) N
+(\)) N
+(# print\(model.trainable_variables\)) c n
 () p n
-(# xs = np.linspace\(0, 2, 100\)) c n
-(# xs = xs[:, np.newaxis]) N
-(# print\(tf.shape\(np.squeeze\(xs\)\)\)) N
-(# print\(tf.shape\(model\(np.squeeze\(xs\)\)\)\)) N
-(# ax[0].plot\(xs, np.squeeze\(model\(xs\)\), "--", label="model"\)) N
-(# ax[0].plot\(np.squeeze\(data.x\), data.y, "o", label="training data"\)) N
-(# ax[0].plot\(xs, np.squeeze\(\(tf.math.sin\(2 * math.pi * xs\)\)\), label="training da) N
-(main.py) (Page 2/3) (Sep 13, 22 3:10) title
+() N
+(loss = tf.keras.losses.BinaryCrossentropy\(from_logits=False\)) N
+(optimizer = tf.keras.optimizers.Adam\() N
+(    learning_rate=0.01,) N
+(    beta_1=0.9,) N
+(    beta_2=0.999,) N
+(    epsilon=1e-07,) N
+(main.py) (Page 2/3) (Sep 13, 22 21:52) title
 border
 grestore
 (Printed by Unknown User) rhead
@@ -960,7 +968,51 @@ llx lly 12 add translate
 /x0 x v get 3.362408 add sx cw mul add store
 /y0 y v get bfs th add sub store
 x0 y0 moveto
-(ta"\)) c n
+(    amsgrad=True,) p n
+(    name=") S
+(Adam) str
+(",) p n
+(\)) N
+(bar = trange\(10000\)) N
+(x, y = data.get_batch\(16\)) N
+() N
+(for) K
+( i ) p
+(in) K
+( bar:) p n
+(    with tf.GradientTape\(\) as tape:) N
+(        ) S
+(# x, y = data.get_batch\(16\)) c n
+(        y_hat = model\(x\)) p n
+(        loss_value = loss\(y, y_hat\)) N
+() N
+(    grads = tape.gradient\(loss_value, model.trainable_variables\)) N
+(    ) S
+(print) K
+(\(tf.reduce_mean\(tf.abs\(grads[0]\)\)\)) p n
+(    optimizer.apply_gradients\(zip\(grads, model.trainable_variables\)\)) N
+() N
+(    bar.set_description\(f") S
+(Loss @ {i} => {loss_value.numpy\(\):0.8f}) str
+("\)) p n
+(    bar.refresh\(\)) N
+() N
+(fig, ax = plt.subplots\(1, 2, figsize=\(11, 4\), dpi=200\)) N
+() N
+(# ax[0].set_title\("Linear Combination of Gaussians"\)) c n
+(# ax[0].set_xlabel\("x"\)) N
+(# ax[0].set_ylim\(np.amin\(data.y\) * 1.5, np.amax\(data.y\) * 1.5\)) N
+(# h = ax[0].set_ylabel\("y", labelpad=10\)) N
+(# h.set_rotation\(0\)) N
+() p n
+(# xs = np.linspace\(0, 2, 100\)) c n
+(# xs = xs[:, np.newaxis]) N
+(# print\(tf.shape\(np.squeeze\(xs\)\)\)) N
+(# print\(tf.shape\(model\(np.squeeze\(xs\)\)\)\)) N
+(# ax[0].plot\(xs, np.squeeze\(model\(xs\)\), "--", label="model"\)) N
+(# ax[0].plot\(np.squeeze\(data.x\), data.y, "o", label="training data"\)) N
+(# ax[0].plot\(xs, np.squeeze\(\(tf.math.sin\(2 * math.pi * xs\)\)\), label="training da) N
+(ta"\)) N
 (# ax[0].plot\(\)) N
 () p n
 (# ax[1].set_title\("Linear Combination of Gaussians"\)) c n
@@ -977,7 +1029,7 @@ x0 y0 moveto
 () N
 (# plt.tight_layout\(\)) c n
 (# plt.savefig\(f"{script_path}/fit.pdf"\)) N
-(main.py) (Page 3/3) (Sep 13, 22 3:10) title
+(main.py) (Page 3/3) (Sep 13, 22 21:52) title
 border
 grestore
 (Printed by Unknown User) rhead

@@ -12,7 +12,7 @@ from tqdm import trange
 
 
 script_path = os.path.dirname(os.path.realpath(__file__))
-rng = np.random.default_rng(seed=55)
+rng = np.random.default_rng(seed=69)
 
 
 class Data:
@@ -55,54 +55,90 @@ class Data:
 
 
 class DenseLayer(tf.Module):
-    def __init__(self, n_in, n_out):
-        self.w = tf.Variable(rng.uniform(-1, 1, (n_in, n_out)), dtype=tf.float32)
-        self.b = tf.Variable(rng.normal(-1, 1, (n_out)), dtype=tf.float32)
+    def __init__(self, n_out, activation=tf.nn.leaky_relu, name=None):
+        super().__init__(name=name)
+        self.n_out = n_out
+        self.activation = activation
+        self.__is_built = False
+
+    def build(self, n_in, index=0):
+        self.w = tf.Variable(
+            tf.random.normal([n_in, self.n_out]) * 0.01, name="w" + str(index)
+        )
+        self.b = tf.Variable(tf.zeros([1, self.n_out]), name="b" + str(index))
+        self.__is_built = True
 
     def __call__(self, x):
-        return tf.nn.sigmoid((x @ self.w) + self.b)
+        if not self.__is_built:
+            raise ValueError("Dense layer not built")
+        return self.activation((x @ self.w) + self.b)
+
+
+# def loss(y_true, y_pred):
+#     return tf.reduce_mean(
+#         y_true * tf.math.log(y_pred) + (1 - y_true) * tf.math.log(1 - y_pred)
+#     )
 
 
 class Model(tf.Module):
-    def __init__(self):
-        self.D1 = DenseLayer(2, 32)
-        self.D2 = DenseLayer(32, 32)
-        self.D3 = DenseLayer(32, 32)
-        self.D4 = DenseLayer(32, 32)
-        self.D5 = DenseLayer(32, 32)
-        self.D6 = DenseLayer(32, 1)
+    def __init__(self, input, layers, name=None) -> None:
+        super().__init__(name=name)
+        self.layers = []
+        with self.name_scope:
+            for (i, node) in enumerate(layers):
+                node.build(input, i)
+                self.layers.append(node)
+                input = node.n_out
 
+    @tf.Module.with_name_scope
     def __call__(self, x):
-        l1 = self.D1(x)
-        l2 = self.D2(l1)
-        l3 = self.D3(l2)
-        l4 = self.D4(l3)
-        l5 = self.D5(l4)
-        l6 = self.D6(l5)
-        return l6
+        value = x
+        for node in self.layers:
+            value = node(value)
+        return value
 
 
-data = Data(500, 0.25, (0.75, 15))
+# model.build(input_shape=(2, 16))
+
+data = Data(500, 0.01, (0.75, 5))
 data.plot()
 
-model = Model()
+print("model")
+model = Model(
+    2,
+    [
+        DenseLayer(96),
+        # DenseLayer(96),
+        # DenseLayer(96),
+        DenseLayer(1, activation=tf.nn.sigmoid),
+    ],
+)
+# print(model.trainable_variables)
 
-optimizer = tf.optimizers.SGD(learning_rate=0.03)
-bar = trange(10)
+
+loss = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+optimizer = tf.keras.optimizers.Adam(
+    learning_rate=0.01,
+    beta_1=0.9,
+    beta_2=0.999,
+    epsilon=1e-07,
+    amsgrad=True,
+    name="Adam",
+)
+bar = trange(10000)
+x, y = data.get_batch(16)
+
 for i in bar:
     with tf.GradientTape() as tape:
-        x, y = data.get_batch(32)
+        # x, y = data.get_batch(16)
         y_hat = model(x)
-        print("Hat")
-        print(y_hat)
-        print("Y")
-        print(y)
-        loss = tf.reduce_mean(y * tf.math.log(y_hat) + (1 - y) * tf.math.log(1 - y_hat))
+        loss_value = loss(y, y_hat)
 
-    grads = tape.gradient(loss, model.trainable_variables)
+    grads = tape.gradient(loss_value, model.trainable_variables)
+    print(tf.reduce_mean(tf.abs(grads[0])))
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-    bar.set_description(f"Loss @ {i} => {loss.numpy():0.6f}")
+    bar.set_description(f"Loss @ {i} => {loss_value.numpy():0.8f}")
     bar.refresh()
 
 fig, ax = plt.subplots(1, 2, figsize=(11, 4), dpi=200)
