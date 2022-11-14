@@ -2,7 +2,7 @@
 We learn Deeply. 
 
 # Assigments: 
-- 01: Linear Regression of Sinewave with Gaussian Basis Functions
+- 01: Linear Regression of Sinewave with Gaussian Basis Functions <br>
 Perform linear regression of a noisy sinewave using a set of gaussian basis functions with learned location and scale parameters. Model parameters are learned with stochastic gradient descent. Use of automatic differentiation is required.
 - 02: Spiral Classification with Multi-Layer Perceptron
 Perform binary classification on the spirals dataset using a multi-layer perceptron. You must generate the data yourself.
